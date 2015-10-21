@@ -1,0 +1,34 @@
+
+                           Marking Guidelines
+                           ------------------
+
+
+Code for Solve (30):
+-------------------
+Compiles, runs (on command line), correct, neat, efficient, commented, good variable names ...
+
+COMMENT:
+MARK:
+
+Code for Optimize (10):
+----------------------
+Compiles, runs (on command line), correct, neat, efficient, ensure feasible solution, use of minimize, 
+use of timeout, commented, good variable names ...
+
+COMMENT:
+MARK:
+
+Report (60):
+------------
+ description of models for Solve and Optimize (20)
+ description of heuristics (10)
+ computational study (20)
+ description of alternative models (10)
+
+COMMENT:
+MARK:
+
+FINAL COMMENT:
+TOTAL MARK (out of 100):
+
+

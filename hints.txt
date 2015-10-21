@@ -1,0 +1,41 @@
+
+                  Hints and Tips
+                  --------------
+
+
+Solve 
+-----
+Beware of producing duplicate constraints between meetings, i.e. a duplicate for
+each agent attending a meeting. This will not just affect the cost of propagation 
+it may also affect the behaviour of heuristics. 
+
+Beware of meetings that are unconstrained. This might result in associated variables
+NOT being added into the solver. This can cause a crash when solutions are outputted
+
+Optimize
+--------
+Optimize is a small edit distance from Solve. The basic requirement is to minimise the maximum meeting time. 
+
+Beware of leaving the problem over-constrained. An example is problem10. It cannot be scheduled in the timeslots 
+given therefore we need to find the smallest amount of additional time required. Generally we can compute
+an upper bound as a sequential schedule of meetings (no concurrency) with a travel distance between 
+meetings taken to be the greatest distance in the distance matrix. 
+
+
+Report
+------
+The report should include a description of the model, description of heuristics, 
+computational study, consideration of alternative model.
+
+In the description of heuristics do not summarise the description of the heuristics used
+in the choco manual. Give a description of the heuristics in the context given. For example, 
+what does smallest domain first mean in this setting, and what does dom-over-deg mean in this 
+setting?
+
+In the computational study consider implementing a job that will execute your experiments and produce results
+that you can easily analyse and present (tabulate and/or summarise).  
+
+
+
+
+Patrick Prosser
