@@ -1,27 +1,27 @@
-java Optimize problems/problem01.txt 2000
-java Optimize problems/problem02.txt 2000
-java Optimize problems/problem03.txt 2000
-java Optimize problems/problem04.txt 2000
-java Optimize problems/problem05.txt 2000
-java Optimize problems/problem06.txt 2000
-java Optimize problems/problem07.txt 2000
-java Optimize problems/problem08.txt 2000
-java Optimize problems/problem09.txt 2000
-java Optimize problems/problem10.txt 2000
-java Optimize problems/problem11.txt 2000
-java Optimize problems/problem12.txt 2000
-java Optimize problems/problem13.txt 2000
-java Optimize problems/problem14.txt 2000
-java Optimize problems/problem15.txt 2000
-java Optimize problems/problem16.txt 2000
-java Optimize problems/problem17.txt 2000
-java Optimize problems/problem18.txt 2000
-java Optimize problems/problem19.txt 2000
-java Optimize problems/problem20.txt 2000
-java Optimize problems/problem21.txt 2000
-java Optimize problems/problem22.txt 2000
-java Optimize problems/problem23.txt 2000
-java Optimize problems/problem24.txt 2000
-java Optimize problems/problem25.txt 2000
-java Optimize problems/problem26.txt 2000
-java Optimize problems/problem27.txt 2000
+java Optimize problems/problem01.txt 2000 > solutions/problem01.txt
+java Optimize problems/problem02.txt 2000 > solutions/problem02.txt
+java Optimize problems/problem03.txt 2000 > solutions/problem03.txt
+java Optimize problems/problem04.txt 2000 > solutions/problem04.txt
+java Optimize problems/problem05.txt 2000 > solutions/problem05.txt
+java Optimize problems/problem06.txt 2000 > solutions/problem06.txt
+java Optimize problems/problem07.txt 2000 > solutions/problem07.txt
+java Optimize problems/problem08.txt 2000 > solutions/problem08.txt
+java Optimize problems/problem09.txt 2000 > solutions/problem09.txt
+java Optimize problems/problem10.txt 2000 > solutions/problem10.txt
+java Optimize problems/problem11.txt 2000 > solutions/problem11.txt
+java Optimize problems/problem12.txt 2000 > solutions/problem12.txt
+java Optimize problems/problem13.txt 2000 > solutions/problem13.txt
+java Optimize problems/problem14.txt 2000 > solutions/problem14.txt
+java Optimize problems/problem15.txt 2000 > solutions/problem15.txt
+java Optimize problems/problem16.txt 2000 > solutions/problem16.txt
+java Optimize problems/problem17.txt 2000 > solutions/problem17.txt
+java Optimize problems/problem18.txt 2000 > solutions/problem18.txt
+java Optimize problems/problem19.txt 2000 > solutions/problem19.txt
+java Optimize problems/problem20.txt 2000 > solutions/problem20.txt
+java Optimize problems/problem21.txt 2000 > solutions/problem21.txt
+java Optimize problems/problem22.txt 2000 > solutions/problem22.txt
+java Optimize problems/problem23.txt 2000 > solutions/problem23.txt
+java Optimize problems/problem24.txt 2000 > solutions/problem24.txt
+java Optimize problems/problem25.txt 2000 > solutions/problem25.txt
+java Optimize problems/problem26.txt 2000 > solutions/problem26.txt
+java Optimize problems/problem27.txt 2000 > solutions/problem27.txt

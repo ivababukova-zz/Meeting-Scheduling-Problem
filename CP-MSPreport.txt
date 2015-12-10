@@ -1,0 +1,253 @@
+﻿1. Description of my model for Solve
+    My model considers the fact that the agents are needed only to
+constrain which meetings can occur in parallel and which not. As soon as I find
+that information from the attendance matrix given in the input file, agents are
+not needed, therefore I have not created any IntVars for them. I represent all
+meetings as an IntVar[] called meeting (of length nMeetings). The value of
+meeting[i] corresponds to the timeslot in which meeting i occurs. The value of
+meeting[i] for i in [0,nMeetings) is [0, timeslots). Therefore, each meeting
+has one and only one occurrence time. Even if more than one agent has to attend
+the meeting, it is not possible that this meeting will have different starting
+times. In this way, the problem is significantly simplified without loosing
+possible solutions.
+    I have a method canBeParallel that takes two meetings as an argument
+and checks whether they can occur in parallel using the attendance matrix. Solve
+goes through all meetings and for each two consecutive meetings M1 and M2 it
+checks whether M1 and M2 can be in parallel(M1 and M2 can be in parallel ifff
+there is no agent that attends both of them).
+* If M1 and M2 can’t be in parallel, then there is at least one agent that has
+M1 and M2 in his calendar. In this case, we post a constraint to ensure that
+there is enough travelling time between M1 and M2.
+* If M1 and M2 can’t be in parallel, then travelling time between them doesn’t
+matter (no agent attends both of them, so no agent has to travel from M1 to M2
+or from M2 to M1).
+
+2. Description of Optimize
+The model for Optimize is almost the same as the model for Solve apart from
+several small edits:
+* I have 2 constructors for Optimize: one that takes as an argument timeLimit,
+if the user has specified a cpu time limit in milliseconds. In this case after
+the timeLimit is elapsed, the best-found-so-far solution will be reported. The
+second constructor is used when the user hasn’t specified time limit. In this
+case, Optimize will terminate after it has found an optimal solution. Time is
+limited in result() method using the SMF.limitTime method, specified in the
+Choco API.
+* The variable timeslots is not the same as timeslots in Solve.java. Here,
+timeslots is IntVar and it is bound from 0 to the maxBound, where maxBound is
+the length of the path from meeting 0 to the last meeting + 1 duration for each
+meeting. Optimize tries to find the lowest timeslot value that is between 0 and
+maxBound that leads to a solution of the problem.
+* MaxBound is the largest possible number of timeslots that an instance of a
+problem will need to find a solution. In this way, we are sure that there must
+be a solution of a given instance of the problem (event if all agents had to
+attend all meetings, Optimize won’t return false, it will return a solution
+with timeslots=MaxBound).
+* I don’t have boolean method solve() as in Solve.java. Here, in method
+result() I call 'solver.findOptimalSolution' to find the minimum timeslots from
+the domain specified.
+
+3. Heuristics used
+The two tables below summarizes all variable ordering heuristics I tried using
+Solve and Optimize. For each of the heuristics, I ran all the problems
+(rProblems and problems) and then calculated the average time taken to solve
+the problems, the average number of nodes and the number of unsolved problems,
+where an unsolved problem is considered to be a problem that runs for more than
+60 seconds. The data gathered was using minimum value ordering heuristics.
+Minimum value selector assigns the minimum number of timeslot (in our case 0)
+to all meetings that are not constrained (all meetings that do not have to
+occur in parallel with other meetings).
+
+Solve:
+ _____________________________________________________________________________
+|             | DomOverWDeg | Occurrence | AntiFirstFail | FirstFail | Default|
+|_____________|_____________|____________|_______________|___________|________|
+|average time |  0.692      |  0.85      |    23.7       |   5.05    | 1.759  |
+|_____________|_____________|____________|_______________|___________|________|
+|average nodes|  23679.3234 |  290.43    |    1366142    |  139268   | 722.4  |
+|_____________|_____________|____________|_______________|___________|________|
+| unsolved    |             |            |               |           |        |
+| problems    |  0          |  0         |    25         |   4       | 0      |
+|_____________|_____________|____________|_______________|___________|________|
+
+Optimize:
+ _____________________________________________________________________________
+|             | DomOverWDeg | Occurrence | AntiFirstFail | FirstFail | Default|
+|_____________|_____________|____________|_______________|___________|________|
+|average time |  0.91       |  0.0771    |    23.7       |   5.07    | 2.01   |
+|_____________|_____________|____________|_______________|___________|________|
+|average nodes|  25613      |  281.43    |    1435103    |  151134   | 653    |
+|_____________|_____________|____________|_______________|___________|________|
+| unsolved    |             |            |               |           |        |
+| problems    |  0          |  0         |    25         |   4       | 0      |
+|_____________|_____________|____________|_______________|___________|________|
+
+    Apart from minimum value selection heuristic, I tried maximum value and
+random value as well as none. None was the slowest one, whereas minimum and
+maximum value heuristics were the fastest ones, with minimum value being the
+best one for the problem and for all variable heuristics in the table. 
+    Domain over weighted degree heuristic selects the non-instantiated variable
+with the largest ratio of domain size of variable and its degree. Anti first
+fail chooses the variable with the largest domain, whereas first fail chooses
+the variable with the smallest domain. Occurrence chooses the variable with the
+largest number of attached propagators.
+    First fail was the best heuristic for solving rProblems, but for the harder
+instances in the “problems” folder it was really slow. The reason why fail
+first behaves like that might be that in the hard problems the size of the
+domain of each variable is of similar size, whereas in rProblems there are
+some variables with much smaller domain.
+As expected, anti first fail is the worst heuristic among all tried heuristics
+for Solve. Most likely, the reason is that anti first fail promotes
+backtracking very late in the search tree by choosing variables with largest
+domain. The number of visited nodes before finding the solution is
+significantly higher, as it can be seen from the table.
+
+4. Computational study
+
+The table below shows details of each problem instance in the problems folder
+and the results obtained by running Solve and Optimize on the corresponding
+problem instance. 
+_____________________________________________________________________________________________
+|pr  |NumbOfMeet|Agents|MeetPerAgent|Solve nodes,timesl|Optim nodes,timesl|min/maxDisBetwMeet|
+|____|__________|______|____________|__________________|__________________|__________________|
+| 01 | 20       | 9    |     5      |      228     12  |     1066    12   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 02 | 20       | 14   |     4      |      50      12  |     666     12   |   1, 3           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 03 | 20       | 9    |     5      |      243     12  |     836     12   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 04 | 20       | 9    |     5      |      161     12  |     1209    12   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 05 | 20       | 14   |     4      |      283     12  |     902     12   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 06 | 20       | 13   |     5      |  false,1471  12  |     2710    13   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 07 | 20       | 13   |     5      |  false,849   12  |     1500    13   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 08 | 20       | 9    |     5      |  false,1784  12  |     2322    13   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 09 | 20       | 9    |     5      |  false,524   12  |     1132    13   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 10 | 20       | 9    |     5      |  false,735   12  |     2309    14   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 11 | 20       | 9    |     5      |  false,2137  12  |     2344    13   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 12 | 20       | 14   |     4      |  false,329   12  |     688     13   |   1, 3           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 13 | 20       | 14   |     4      |  false,122   12  |     783     14   |   1, 3           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 14 | 20       | 14   |     4      |  false,117   12  |     480     13   |   1, 3           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 15 | 20       | 9    |     5      |  false,569   12  |     1032    13   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 16 | 20       | 9    |     5      |  false,777   12  |     1719    13   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 17 | 20       | 9    |     5      |  false,661   12  |     1807    13   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 18 | 20       | 9    |     6      |  false,985   12  |     12860   15   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 19 | 40       | 13   |     5      |      271     12  |     4061    12   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 20 | 40       | 13   |     5      |      235     12  |     3777    12   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 21 | 40       | 13   |     5      |      434     12  |     2368    12   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 22 | 40       | 13   |     5      |      80      12  |     1644    12   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 23 | 40       | 17   |     4      |      56      12  |     1165    12   |   1, 3           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 24 | 40       | 17   |     4      |      183     12  |     1393    12   |   1, 3           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 25 | 40       | 17   |     4      |  false,128   12  |     1225    14   |   1, 3           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 26 | 40       | 17   |     5      |  false,3298  12  |     4904    13   |   1, 2           |
+|____|__________|______|____________|__________________|__________________|__________________|
+| 27 | 40       | 13   |     4      |  false,48    12  |     1267    14   |   2, 4           |
+|____|__________|______|____________|__________________|__________________|__________________|
+
+From the table it can be seen that Optimize takes several times more nodes to
+find a solution, whereas Solve is much faster. In particular, there are
+problems which are very hard for Optimize, but not that hard for Solve and vise
+versa.
+    During the lectures, we made an observation: there exist a set of variable
+values for which the problem instance takes really huge amount of time to be
+solved. For example, if the problem is solvable for variable 'x' = 'a' + 1 and
+the problem is unsolvable for 'x' = 'a', then checking for solution for
+'x' = 'a' and 'x' = 'a' + 1 will have high time cost, i.e. the problem will be
+'hard' for these values.
+    My hypothesis is that Optimize takes significantly higher amount of time to
+find the optimal solution compared to Solve, because Solve does not necessarily
+need to check for 'x' (in our case number of timeslots) values which are 'hard'
+every time on every problem instance, it just checks for specific given value
+of 'x'. On the other hand, Optimize needs to check all values from maxBound
+until it does not find a solution, i.e. every time we run Optimize, it finds a
+solution for 'x' = 'a' + 1 (which is very 'hard') and then it tried to find a
+solution for 'x' = 'a' (which is also very 'hard') in order to prove that
+'x = 'a' + 1 is the optimial solution. Because 'a' is not a solution, it
+outputs 'a' + 1 as minimum number of timeslots. 
+
+
+
+5. Alternative models
+* alternative model that was proven to be very bad idea:
+    Before I wrote the final version of Solve (the one submitted), I wrote
+another program: DumbSolve, using very different model. DumbSolve was so slow,
+that for the simplest problem: 10-5-30-2-00.txt it would take 42 512 number of
+nodes to solve it. For any bigger problem than this one DumbSolve was running
+forever. The model for DumbSolve(I will never use this model again!) was the
+following:
+    * Use an IntVar[][] agent-calendar, where agent-calendar[i][j] corresponds
+to the timeslot j of agent i. If agent-calendar[i][j] == -1, then agent i does
+not have any meetings at time j. If agent-calendar[i][j] == m for m between 0
+and nMeetings, then agent i has meeting m at time j
+    * DumbSolve divides the problem into 3 subproblems and tries to solve them
+1 by 1:
+
+1) Constrain agent-cal[i] so that each meeting that agent i attends is in his
+calendar exactly once. Calculate the number of -1s that have to be present in
+agent-cal[i]: timeslots - number of meetings agent i attends. I used constraint
+among twice to do this.
+
+2) Find all agents with more than 1 meeting and post travel constraints. Travel
+constraint is: distance(2 conseq meetings) +1 <= time gap between them.
+
+3) Post constraint to synchronize calendars: for all agents who attend the same
+meeting: the meeting must occur at the same timeslot in their calendar.
+
+    * This model is a really bad idea, because it makes the problem much more
+complex. Agent-cal variable is very large and most of the information there is
+redundant. This approach of dividing the problem into 3 independent sub-
+problems does not work well, because in this way 3 under-constrained problems
+are created. Last but not least, coding this method is very error prone.
+
+I learned that in constraints programming having an efficient model is the key
+to solving a problem. Instead of thinking about how to solve the problem, I
+went and started solving it without realizing the importance of having a good
+model.  
+
+There are other models which I considered:
+* MSP can be reduced to graph colouring problem: each meeting is a vertex.
+There exists an edge between two vertices (two meetings) if and only if the two
+meetings can not occur in parallel. The minimum number of different colours
+that have to be used to colour the vertices will be the minimum number of
+timeslots needed to solve the MSP. This is potentially a really good model for
+the problem, because the graph made from the meetings is going to be planar
+graph for some instances (specifically for the instances of the problem when
+there most of the meetings can occur in parallel). We know that if the graph is
+ planar and has low branch width (or is nonplanar but with a known branch
+decomposition), then there exist algorithms that can solve the problem in
+polynomial time. In general, the time required is polynomial in the graph size,
+ but exponential in the branch width (i.e. when the problem has many
+constraints).
+
+* MSP is similar to TSP: if we consider all meetings as vertices of a directed
+weighted graph, where each meeting is a vertex and the weight W of an edge
+between meeting M1 and meeting M2 corresponds to the distance between M1 and
+M2. A solution to MSP for agent I will be a path in the graph containing all
+meetings that I attends. An optimized solution will be the shortest such path.
+This model has a lot of problems:
+    * The graph is a clique: this makes the search space enormous
+    * TSP is a NP-complete problem. That means that it is most likely not a
+good idea to reduce the problem to TSP.
+    * this model makes it really hard to constrain meetings that can not occur
+in parallel. I was thinking about diving meetings into sets and constrain each
+set.
